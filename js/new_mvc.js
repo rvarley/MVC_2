@@ -25,11 +25,8 @@ function MVC() {
 
 
         setModel: function(data) {
-            // var data = {};
-            /*$.each(to_post, function(k, v) {
-                data[Model[k]["1"]] = v;
-            }) */
 
+            console.log('arr[1] in setModel is: ', View.arr[1]);
             var temp_data = {};
             // The following 4 lines set header rows required by sheetsu API
             var col1_key = data[1][1];
@@ -38,16 +35,20 @@ function MVC() {
             var col4_key = data[4][1];
 
             // The following 4 lines set keys required by sheetsu API 
-            temp_data[col1_key] = "999";
-            temp_data[col2_key] = "zzz";
-            temp_data[col3_key] = "Ni Hao";
-            temp_data[col4_key] = "It works?";
+            temp_data[col1_key] = View.arr[0];
+            temp_data[col2_key] = View.arr[1];
+            temp_data[col3_key] = View.arr[2];
+            temp_data[col4_key] = View.arr[3];
 
-            console.log("temp_data in setModel", temp_data);
-            console.log("data in setModel is ", data);
+            console.log("temp_data in setModel is: ", temp_data);
+            // console.log("data in setModel is ", data);
             var address = "https://sheetsu.com/apis/0a299348";
             $.post(address, temp_data);
         }, // End of setModel
+
+        refreshModel: function() {
+            location.reload();  // reloads webpage which fetches data
+        }, // End of refreshModel 
 
         updateModel: function() {
 
@@ -60,33 +61,17 @@ function MVC() {
             Model.getModel(View.displayList);
         },
 
-        // *** What is pos_str used for? ***/
-        // *** Looks like this method isn't being used ***///
-       /* updateData : function(pos_str) {
-           
-            Model.setData(data, position);
-            Model.getModel();
-            return Model.currentState;
-        }, */
-
         eventHandler : function(e) {
             // If Add Button is clicked
-            if (e.target.className === "adder") {
-                $(e.target).prop("disabled",true);
-                View.displayAdd();
+            // console.log("in controller event handler, e.target.id is: ", e.target.id);
+            if (e.target.id === "refresh") {
+                console.log("Refresh button clicked");
+                Model.refreshModel();
 
-            } else if (e.target.className === "sub") {
-                var addList = [];
-                var input = $('.add_box').val();
-                var adds = input.split(',');
-                for (var i = 0; i < adds.length; i++) {
-                    addList.push($.trim(adds[i]));      // RV - remove spaces and newlines from cell data
-                }
-                Model.appendLine(adds);     // *** Why is appendLine being passed adds instead of addList? *** 
-                View.removeAdd();
-                View.displayList();
-            } else if (e.target.className === "update") {
-                return Controller.fetchData();
+            } else if (e.target.id === "addrow") {
+                var new_data = prompt("Enter CSV data to add to spreadsheet.");
+                View.arr = new_data.split(',');
+                Model.setModel(View.test);
             }
         }
     }; // End of controller
@@ -96,11 +81,12 @@ function MVC() {
         rowmax : 0,
         colmax : 0,
         addform : $('#addrowform'),
-        // test : {1:{1:'num', 2:'2', 3:'3', 5:'4'}, 2:{1:'alpha', 2:'a', 3:'b'}, 4:{1:'hello', 2:'goodbye', 3:'adios'}},
         test : {},
+        arr : '',
+        addRow : $('#addrow'),
+        refreshData : $('#refresh'),
 
         getMax : function(test) {
-            console.log("data object keys in getmax is ", Object.keys(test));
             //cycles through the Model and saves number of rows and columns
             View.test = test;
             for (var i = 0;i < Object.keys(View.test).length; i++){
@@ -117,9 +103,13 @@ function MVC() {
                     }
                 }
             }
-            console.log("in getMax, rolmax is:  ", View.rowmax);
-            console.log("in getMax, View.test is:  ", View.test);
         },
+
+        displayAdd : function() {
+            this.mainLocale.append("<input class='add_box' type=text></input>");
+            this.mainLocale.append("<button class='sub'>Submit</button>");
+            this.mainLocale.append("<p id='direction'>CSV Please</p>");
+        }, // End of displayAdd
 
         createTable : function() {
             //creates a table with the dimensions of rowmax and colmax
@@ -131,7 +121,12 @@ function MVC() {
                     View.populateCell(r, c, cell);
                 }
             }
-            console.log("in createTable, View.test", View.test);
+            View.refreshData.click(function(e) {
+                Controller.eventHandler(e);
+            });
+            View.addRow.click(function(e) {
+                Controller.eventHandler(e);
+            });
         },
 
         populateCell : function(r, c, cell) {
@@ -142,46 +137,19 @@ function MVC() {
             else {
                 cell.innerHTML = '&nbsp';
             }
-        },
-
-        addNewRow : function() {
-            //appends a row of text boxes to bottom of the table to pass to Controller
-            var tr = View.table[0].insertRow(View.rowmax);
-            for (var c = 1; c <= View.colmax; c++) {
-                var cell = tr.insertCell(-1);
-                cell.setAttribute("id", (c));
-                cell.innerHTML = '<input type="text">';
-            }
-        },
-
-        addDone : function() {
-            //creates a Submit button to send to Controller
-            var $done = $('<input type="submit" value="Done" id="donebutton" />');
-            $done.appendTo(View.addform);
-            console.log($(":submit"));
-            $(":submit").click(function() {
-            //Controller.something?
-        });
-        console.log("in addDone", View.addform);
         }
 
         }; // End of View object
 
-// Our original callback stuff
     function displayCallback(incomingData) {
         var temp_data = {};
-        console.log("incoming:w
-        Data in displayCallback is ", incomingData);
         View.getMax(incomingData);
         View.createTable();      // Initialize view
     }
 
     $(document).ready(function() {
         Model.getModel(displayCallback);
-        // data = { "Num": "69", "Alpha": "zz", "Greet": "Ni Hao", "Test Column": "Oy Vey!" };
-        // Model.getModel(Model.setModel);
     });
-// Model.getModel(Model.nonFunc);  // Initialize model
 
     
 
