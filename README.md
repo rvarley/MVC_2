@@ -1,2 +1,2 @@
-# MVC_2
-MVC_2
+# mvc_page
+At fun with Google API and MVC
